@@ -1,6 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+using UnityEngine.SceneManagement;
 
 public class player : MonoBehaviour
 {
@@ -14,8 +17,11 @@ public class player : MonoBehaviour
     public int cherries = 0;
 
     private Collider2D coll;
+    private AudioSource footstep;
     [SerializeField] private float hurt = 10f;
-    [SerializeField] private LayerMask ground; 
+    [SerializeField] private LayerMask ground;
+    [SerializeField] private int health = 5;
+    [SerializeField] private Text healthAmount;
     void Start()
     {
      
@@ -24,6 +30,10 @@ public class player : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
      
         animator = GetComponent<Animator>();
+
+        footstep = GetComponent<AudioSource>();
+
+        healthAmount.text = health.ToString();
     }
 
 
@@ -84,6 +94,7 @@ public class player : MonoBehaviour
             else
             {
                 state = State.hurt;
+                hadleHealth();
                 if (collision.gameObject.transform.position.x > transform.position.x)
                 {
                     rb.velocity = new Vector2(-hurt, rb.velocity.y);
@@ -95,6 +106,16 @@ public class player : MonoBehaviour
             }
         }
         
+    }
+
+    private void hadleHealth()
+    {
+        health -= 1;
+        healthAmount.text = health.ToString();
+        if (health <= 0)
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
     }
 
     void jump()
@@ -138,6 +159,12 @@ public class player : MonoBehaviour
             state = State.idle;
         }
     }
+
+    private void foot()
+    {
+        footstep.Play();
+    }
+
 }
 
 
