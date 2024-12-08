@@ -14,7 +14,7 @@ TagManager:
   - Water
   - UI
   - Ground
-  - 
+  - Wall
   - 
   - 
   - 
@@ -46,9 +46,39 @@ TagManager:
   - name: Back
     uniqueID: 3777945317
     locked: 0
+  - name: back1
+    uniqueID: 1709995735
+    locked: 0
+  - name: back2
+    uniqueID: 842799289
+    locked: 0
+  - name: back3
+    uniqueID: 4215719703
+    locked: 0
+  - name: back4
+    uniqueID: 1704644699
+    locked: 0
+  - name: back5
+    uniqueID: 2427333951
+    locked: 0
   - name: Entity
     uniqueID: 1202498647
     locked: 0
   - name: Fore
     uniqueID: 3565394401
+    locked: 0
+  - name: fore1
+    uniqueID: 470203637
+    locked: 0
+  - name: fore2
+    uniqueID: 3411758717
+    locked: 0
+  - name: Wall
+    uniqueID: 172334513
+    locked: 0
+  - name: fore3
+    uniqueID: 319948949
+    locked: 0
+  - name: fore4
+    uniqueID: 140902079
     locked: 0

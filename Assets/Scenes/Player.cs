@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
+using Unity.VisualScripting;
 
 public class player : MonoBehaviour
 {
@@ -11,27 +12,46 @@ public class player : MonoBehaviour
     public int high = 10;
     public int speed = 5;
     private Rigidbody2D rb;
-    private float leftright;
+
     private enum State { idle, running, jumping, falling, hurt }
     private State state = State.idle;
     public int cherries = 0;
 
     private Collider2D coll;
-    private AudioSource footstep;
+
+    private bool isFacingRight = true;
+
+    private bool isWallSliding;
+    private float wallSlidingSpeed = 2f;
+    private float move;
+    private bool isWallJumping;
+    private float wallJumpingDirection;
+    private float wallJumpingTime = 0.2f;
+    private float wallJumpingCounter;
+    private float wallJumpingDuration = 0.4f;
+    private Vector2 wallJumpingPower;
+    [SerializeField] private Transform groundCheck;
+    [SerializeField] private LayerMask groundLayer;
+    [SerializeField] private Transform wallCheck;
+    [SerializeField] private LayerMask wallLayer;
+
+
     [SerializeField] private float hurt = 10f;
     [SerializeField] private LayerMask ground;
     [SerializeField] private int health = 5;
     [SerializeField] private Text healthAmount;
+    [SerializeField] private AudioSource cherrysound;
+    [SerializeField] private AudioSource footstep;
     void Start()
     {
-     
+             wallJumpingPower = new Vector2(speed, high);
         coll = GetComponent<Collider2D>();
       
         rb = GetComponent<Rigidbody2D>();
      
         animator = GetComponent<Animator>();
 
-        footstep = GetComponent<AudioSource>();
+
 
         healthAmount.text = health.ToString();
     }
@@ -42,9 +62,16 @@ public class player : MonoBehaviour
         if(state != State.hurt)
         {
             Input();
+            WallSlide();
+            WallJump();
+
+            if (!isWallJumping)
+            {
+                Flip();
+            }
 
         }
-        
+
 
         animationState();
         animator.SetInteger("state", (int)state);
@@ -52,7 +79,7 @@ public class player : MonoBehaviour
 
     private void Input()
     {
-        float move = UnityEngine.Input.GetAxis("Horizontal");
+        move = UnityEngine.Input.GetAxis("Horizontal");
         if (move < 0)
         {
             rb.velocity = new Vector2(move * speed, rb.velocity.y);
@@ -76,6 +103,7 @@ public class player : MonoBehaviour
     {
         if(collision.tag =="collect")
         {
+            cherrysound.Play();
             Destroy(collision.gameObject);
             cherries += 1;
         }
@@ -115,6 +143,88 @@ public class player : MonoBehaviour
         if (health <= 0)
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
+    }
+
+
+
+    private bool IsWalled()
+    {
+        bool isWalled = Physics2D.OverlapCircle(wallCheck.position, 0.2f, wallLayer);
+      
+        return isWalled;
+    }
+
+
+    private bool IsGrounded()
+    {
+        return Physics2D.OverlapCircle(groundCheck.position, 0.2f, groundLayer);
+    }
+
+    private void WallSlide()
+    {
+        bool isGrounded = IsGrounded(); // Kiểm tra có chạm đất
+        bool isWalled = IsWalled(); // Kiểm tra có bám tường
+
+
+        if (isWalled && !isGrounded && Mathf.Abs(move) > 0.1f) // Điều kiện này kiểm tra xem nhân vật có đang di chuyển
+        {
+            isWallSliding = true;
+            rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -wallSlidingSpeed, float.MaxValue));
+        }
+        else
+        {
+            isWallSliding = false;
+        }
+    }
+
+
+    private void WallJump()
+    {
+        if (isWallSliding)
+        {
+            isWallJumping = false;
+            wallJumpingDirection = -transform.localScale.x;
+            wallJumpingCounter = wallJumpingTime;
+
+            CancelInvoke(nameof(StopWallJumping));
+        }
+        else
+        {
+            wallJumpingCounter -= Time.deltaTime;
+        }
+
+        if (UnityEngine.Input.GetKeyDown(KeyCode.Space) && wallJumpingCounter > 0f)
+        {
+            isWallJumping = true;
+            rb.velocity = new Vector2(wallJumpingDirection * wallJumpingPower.x, wallJumpingPower.y);
+            wallJumpingCounter = 0f;
+
+            if (transform.localScale.x != wallJumpingDirection)
+            {
+                isFacingRight = !isFacingRight;
+                Vector3 localScale = transform.localScale;
+                localScale.x *= -1f;
+                transform.localScale = localScale;
+            }
+
+            Invoke(nameof(StopWallJumping), wallJumpingDuration);
+        }
+    }
+
+    private void StopWallJumping()
+    {
+        isWallJumping = false;
+    }
+
+    private void Flip()
+    {
+        if (isFacingRight && move < 0f || !isFacingRight && move > 0f)
+        {
+            isFacingRight = !isFacingRight;
+            Vector3 localScale = transform.localScale;
+            localScale.x *= -1f;
+            transform.localScale = localScale;
         }
     }
 
