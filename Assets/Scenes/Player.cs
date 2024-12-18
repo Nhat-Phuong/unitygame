@@ -36,12 +36,14 @@ public class player : MonoBehaviour
     [SerializeField] private LayerMask wallLayer;
 
 
-    [SerializeField] private float hurt = 10f;
+    [SerializeField] private float hurt = 3f;
     [SerializeField] private LayerMask ground;
     [SerializeField] private int health = 5;
     [SerializeField] private Text healthAmount;
     [SerializeField] private AudioSource cherrysound;
     [SerializeField] private AudioSource footstep;
+    [SerializeField] private Text cherryText;
+    public GameOver gameOver;
     void Start()
     {
              wallJumpingPower = new Vector2(speed, high);
@@ -52,11 +54,11 @@ public class player : MonoBehaviour
         animator = GetComponent<Animator>();
 
 
-
+        cherryText.text = cherries.ToString();
         healthAmount.text = health.ToString();
     }
 
-
+   
     void Update()
     {
         if(state != State.hurt)
@@ -103,9 +105,11 @@ public class player : MonoBehaviour
     {
         if(collision.tag =="collect")
         {
+           
             cherrysound.Play();
             Destroy(collision.gameObject);
             cherries += 1;
+            cherryText.text = cherries.ToString();
         }
     }
     private void OnCollisionEnter2D(Collision2D collision)
@@ -142,7 +146,7 @@ public class player : MonoBehaviour
         healthAmount.text = health.ToString();
         if (health <= 0)
         {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            gameOver.Setup(cherries);
         }
     }
 
@@ -273,6 +277,11 @@ public class player : MonoBehaviour
     private void foot()
     {
         footstep.Play();
+    }
+
+    public void OverGame()
+    {
+        gameOver.Setup(cherries);
     }
 
 }

@@ -4,18 +4,21 @@ using UnityEngine;
 
 public class Eagle : Enemy
 {
-    public float speed = 2; // Tốc độ di chuyển
+    public float speed = 2f; // Tốc độ di chuyển
     private Transform player; // Tham chiếu đến Player
     public float LineSite; // Khoảng cách phát hiện Player
-    [SerializeField] private AudioSource flysound;
+
     [SerializeField] private AudioSource attacksound;
 
     private Vector3 startPos; // Vị trí ban đầu của Eagle
-    public float verticalMovementDistance = 2f; // Khoảng cách di chuyển lên xuống
-    public float verticalSpeed = 1f; // Tốc độ di chuyển lên xuống
 
+    public float verticalSpeed = 1f; // Tốc độ di chuyển lên xuống
+    [SerializeField] private float top; // Giới hạn trên (trục Y)
+    [SerializeField] private float down; // Giới hạn dưới (trục Y)
     private float attackCooldown = 1f; // Thời gian chờ giữa các lần phát âm thanh tấn công
     private float lastAttackTime = -1f; // Lưu thời điểm phát âm thanh tấn công cuối cùng
+
+    private bool isPlayerInRange = false; // Kiểm tra Player có trong phạm vi không
 
     protected override void Start()
     {
@@ -30,15 +33,16 @@ public class Eagle : Enemy
         {
             float distance = Vector2.Distance(player.position, transform.position); // Tính khoảng cách với Player
 
-            // Nếu Player nằm trong khoảng phát hiện
             if (distance < LineSite)
             {
+                isPlayerInRange = true;
                 Attack(); // Phát âm thanh tấn công (có cooldown)
-                Fly(); // Phát âm thanh bay khi phát hiện Player
-                // Di chuyển đến Player
-                transform.position = Vector2.MoveTowards(this.transform.position, player.position, speed * Time.deltaTime);
 
-                // **Quay trái hoặc phải theo vị trí của Player**
+                // Di chuyển đến Player trên cả trục X và Y
+                Vector3 targetPosition = new Vector3(player.position.x, player.position.y, transform.position.z);
+                transform.position = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
+
+                // Quay mặt về hướng Player
                 if (player.position.x < transform.position.x)
                 {
                     transform.localScale = new Vector3(1, 1, 1); // Quay mặt sang trái
@@ -50,25 +54,23 @@ public class Eagle : Enemy
             }
             else
             {
-                // Di chuyển lên xuống khi chưa phát hiện Player
-                float newY = startPos.y + Mathf.Sin(Time.time * verticalSpeed) * verticalMovementDistance;
-                transform.position = new Vector3(transform.position.x, newY, transform.position.z);
+                isPlayerInRange = false;
+
+                // Di chuyển lên xuống trong phạm vi top-down khi không có Player
+                float newY = startPos.y + Mathf.Sin(Time.time * verticalSpeed) * (top - down) / 2f;
+                transform.position = new Vector3(transform.position.x, Mathf.Clamp(newY, down, top), transform.position.z);
+
+                // Quay về vị trí ban đầu trên trục X
+                transform.position = Vector3.MoveTowards(transform.position, new Vector3(startPos.x, transform.position.y, transform.position.z), speed * Time.deltaTime);
             }
         }
     }
+
 
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.green;
         Gizmos.DrawWireSphere(transform.position, LineSite); // Vẽ hình cầu với bán kính LineSite
-    }
-
-    private void Fly()
-    {
-        if (!flysound.isPlaying)
-        {
-            flysound.Play(); // Phát âm thanh bay
-        }
     }
 
     private void Attack()
