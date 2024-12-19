@@ -56,15 +56,16 @@ public class Eagle : Enemy
             {
                 isPlayerInRange = false;
 
-                // Di chuyển lên xuống trong phạm vi top-down khi không có Player
-                float newY = startPos.y + Mathf.Sin(Time.time * verticalSpeed) * (top - down) / 2f;
-                transform.position = new Vector3(transform.position.x, Mathf.Clamp(newY, down, top), transform.position.z);
+                float randomYOffset = Mathf.Sin(Time.time * verticalSpeed) * Random.Range(0.5f, 1f);
+                transform.position += new Vector3(0, randomYOffset, 0) * Time.deltaTime;
+
 
                 // Quay về vị trí ban đầu trên trục X
                 transform.position = Vector3.MoveTowards(transform.position, new Vector3(startPos.x, transform.position.y, transform.position.z), speed * Time.deltaTime);
             }
         }
     }
+
 
 
     private void OnDrawGizmosSelected()

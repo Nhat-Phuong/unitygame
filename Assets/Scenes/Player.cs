@@ -30,6 +30,9 @@ public class player : MonoBehaviour
     private float wallJumpingCounter;
     private float wallJumpingDuration = 0.4f;
     private Vector2 wallJumpingPower;
+
+
+
     [SerializeField] private Transform groundCheck;
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private Transform wallCheck;
@@ -42,15 +45,15 @@ public class player : MonoBehaviour
     [SerializeField] private Text healthAmount;
     [SerializeField] private AudioSource cherrysound;
     [SerializeField] private AudioSource footstep;
+    [SerializeField] private AudioSource sound;
+    [SerializeField] private AudioSource powersound;
     [SerializeField] private Text cherryText;
     public GameOver gameOver;
     void Start()
     {
-             wallJumpingPower = new Vector2(speed, high);
+        wallJumpingPower = new Vector2(speed, high);
         coll = GetComponent<Collider2D>();
-      
         rb = GetComponent<Rigidbody2D>();
-     
         animator = GetComponent<Animator>();
 
 
@@ -58,7 +61,7 @@ public class player : MonoBehaviour
         healthAmount.text = health.ToString();
     }
 
-   
+
     void Update()
     {
         if(state != State.hurt)
@@ -110,6 +113,17 @@ public class player : MonoBehaviour
             Destroy(collision.gameObject);
             cherries += 1;
             cherryText.text = cherries.ToString();
+        }
+        if (collision.tag == "power")
+        {
+
+            cherrysound.Play();
+            Destroy(collision.gameObject);
+            high = 12;
+            speed = 10;
+            PlayPowerSound();
+            GetComponent<SpriteRenderer>().color = Color.yellow;
+            StartCoroutine(resetpower());
         }
     }
     private void OnCollisionEnter2D(Collision2D collision)
@@ -278,10 +292,28 @@ public class player : MonoBehaviour
     {
         footstep.Play();
     }
+    public void PlayPowerSound()
+    {   
+          powersound.Play(); // Phát âm thanh    
+    }
+    public void PlaySound()
+    {
+        sound.Play(); // Phát âm thanh    
+    }
+
 
     public void OverGame()
     {
         gameOver.Setup(cherries);
+    }
+    private IEnumerator resetpower()
+    {
+        yield return new WaitForSeconds(5);
+        high = 10;
+        speed =5;
+        GetComponent<SpriteRenderer>().color = Color.white;
+        PlaySound();
+        powersound.Stop();
     }
 
 }
